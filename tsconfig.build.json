@@ -2,6 +2,10 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "noEmit": false,
+    // The tarball ships dist only, so maps would point at files that are not
+    // there.
+    "sourceMap": false,
+    "declarationMap": false,
     "rootDir": "src",
     "outDir": "dist",
     "types": ["node"]
