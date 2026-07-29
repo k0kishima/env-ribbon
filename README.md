@@ -121,6 +121,10 @@ await expect(page.getByTestId('environment-ribbon')).toHaveText('PREVIEW');
 
 - **Strict CSP.** Environments that forbid `unsafe-inline` in `style-src` / `style-src-attr` will block the inline styles and the small `<style>` tag this component renders. Since the ribbon only ever shows up in development and preview, the practical impact is limited to those environments.
 
+- **A small client chunk still ships to production.** Nothing is *rendered* in production, but the dismiss button is a client component, so its code reaches the browser anyway. Measured on a Next.js 16 / Turbopack app: **+1,078 bytes raw, +514 bytes gzipped**, or 0.19% of that app's 265 KB of gzipped initial JS.
+
+  Deferring the import until after the production gate — `await import('./EnvironmentRibbonClient.js')` — does **not** remove it. Turbopack merges the module into a shared chunk that other client components already load unconditionally, so the bytes are present whether or not this component renders; a measurement across both variants came out byte-identical. Reaching zero would mean dropping the client component altogether and doing the dismissal in CSS, which moves `data-testid` off the `<button>` and breaks the contract above. At half a kilobyte that trade is not worth making, so the bytes stay.
+
 ## Scope
 
 Built for Next.js / React with Server Components. React Native is out of scope; a separate package is planned for it, reusing `env-ribbon/detect` as-is.
